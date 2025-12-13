@@ -1,6 +1,10 @@
 import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
-import { handleDisconnectedUser, handleJoinUser, handleSessionCreation } from "../service/socket.service";
+import {
+  handleDisconnectedUser,
+  handleJoinUser,
+  handleSessionCreation,
+} from "../service/socket.service";
 
 let io: Server;
 
@@ -15,20 +19,23 @@ export default function initSocket(server: HttpServer): Server {
 
   io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
-    
-    socket.on("create-session",({sessionCode,callType})=>{
-        console.log("....session creation",sessionCode,"type::",callType);
-        
-        handleSessionCreation(sessionCode,callType)
-    })
+
+    socket.on("create-session", ({ sessionCode, callType }) => {
+      console.log("....session creation", sessionCode, "type::", callType);
+
+      handleSessionCreation(sessionCode, callType);
+    });
     socket.on("join-session", ({ sessionCode, participantName }) => {
-     console.log("joining session",sessionCode,"name::",participantName);
-      handleJoinUser(sessionCode, participantName,socket.id)
+      console.log("joining session", sessionCode, "name::", participantName);
+      handleJoinUser(sessionCode, participantName, socket.id);
+    });
+    socket.on("leave-session", ({sessionCode,socketId}) => {
+      console.log("Socket Left the session.....:", socket.id);
     });
 
     socket.on("disconnect", () => {
       console.log("Socket disconnected:", socket.id);
-      handleDisconnectedUser(socket.id)
+      handleDisconnectedUser(socket.id);
     });
   });
 
