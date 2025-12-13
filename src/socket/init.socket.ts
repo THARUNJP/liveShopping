@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
+import { handleJoinUser, handleSessionCreation } from "../service/socket.service";
 
 let io: Server;
 
@@ -10,10 +11,17 @@ export default function initSocket(server: HttpServer): Server {
       methods: ["GET", "POST"],
     },
   });
-console.log("socket is running on port 8000");
+  console.log("socket is running on port 8000");
 
   io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
+    
+    socket.on("create-session",({sessionCode,callType})=>{
+        handleSessionCreation(sessionCode,callType)
+    })
+    socket.on("join-session", ({ sessionCode, participantName }) => {
+      handleJoinUser(sessionCode, participantName,socket.id)
+    });
 
     socket.on("disconnect", () => {
       console.log("Socket disconnected:", socket.id);

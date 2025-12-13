@@ -14,3 +14,16 @@ export enum SessionStatus {
   ACTIVE = "ACTIVE",
   ENDED = "ENDED",
 }
+
+export interface Participant {
+  socketId: string;          // unique per connection
+  name: string;              // participant name
+  role: SessionRole     // participant role
+  joinedAt: Date;
+}
+
+export interface SessionData {
+  participants: Map<string, Participant>; // Key = socketId
+  maxParticipants: number;
+  status:SessionStatus
+}
