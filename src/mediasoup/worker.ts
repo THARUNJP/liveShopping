@@ -1,4 +1,4 @@
-import { Worker, WorkerLogLevel } from "mediasoup/node/lib/WorkerTypes";
+import { Worker} from "mediasoup/node/lib/WorkerTypes";
 import { mediasoupConfig } from "../config/mediasoup.config";
 import * as mediasoup from "mediasoup";
 
