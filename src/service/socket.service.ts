@@ -13,6 +13,7 @@ export const handleJoinUser = (
   name: string,
   socketId: string
 ) => {
+  const io = getIO();
   const participantData = {
     socketId,
     name,
@@ -22,6 +23,11 @@ export const handleJoinUser = (
   const session: SessionData | undefined = sessionsMap.get(sessionCode);
   if (!session) return;
   session.participants.set(socketId, participantData);
+
+  io.to(sessionCode).emit("participants-updated", {
+    participants: Array.from(session.participants.values()),
+    message: `${name ?? "A user"} has joined the session`,
+  });
   // needs to do api call for inserting in db
 };
 
