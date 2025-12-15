@@ -9,7 +9,7 @@ let nextWorkerIndex = 0;
 //  ├── config.ts        ✅ DONE
 //  ├── index.ts        
 //  ├── worker.ts        ✅ DONE
-//  ├── router.ts        ⏭ NEXT (session ↔ router mapping)
+//  ├── router.ts        ✅ DONE
 //  ├── transport.ts
 //  ├── producer.ts
 //  ├── consumer.ts
