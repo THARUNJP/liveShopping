@@ -1,17 +1,33 @@
 import dotenv from "dotenv";
 dotenv.config();
-import app from "./app";
+
 import { createServer } from "node:http";
+import app from "./app";
 import initSocket from "./socket/init.socket";
+import { initMediasoup } from "./mediasoup";
 
+const PORT = Number(process.env.PORT) || 8000;
 
-const PORT = process.env.port || 8000;
+async function bootstrap() {
+  try {
+    // 1️ mediasoup FIRST
+    await initMediasoup();
+    console.log("mediasoup initialized");
 
+    // 2️ create HTTP server
+    const server = createServer(app);
 
-const server = createServer(app)
+    // 3 init socket.io
+    initSocket(server);
 
-initSocket(server)
+    // 4️ start server
+    server.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error("Failed to bootstrap server:", err);
+    process.exit(1);
+  }
+}
 
-server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+bootstrap();
