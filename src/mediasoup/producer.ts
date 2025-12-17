@@ -35,3 +35,13 @@ export async function createProducer(
 }
 
 
+export function closeProducers(socketId: string): void {
+  const socketProducers = producers.get(socketId);
+  if (!socketProducers) return;
+
+  for (const producer of socketProducers.values()) {
+    producer.close();
+  }
+
+  producers.delete(socketId);
+}
