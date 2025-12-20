@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
 import {
   handleDisconnectedUser,
+  handleGetRtpCapabilities,
   handleJoinUser,
   handleLeaveSession,
   handleSessionCreation,
@@ -27,10 +28,15 @@ export default function initSocket(server: HttpServer): Server {
       handleSessionCreation(sessionCode, callType);
     });
 
-
-    // join session 
+    // join session
     socket.on("join-session", ({ sessionCode, participantName }) => {
-      console.log("joining session", sessionCode, "name::", participantName,socket.id);
+      console.log(
+        "joining session",
+        sessionCode,
+        "name::",
+        participantName,
+        socket.id
+      );
       // Prevent duplicate joins
       if (socket.rooms.has(sessionCode)) return;
       // Join transport room first
@@ -39,11 +45,11 @@ export default function initSocket(server: HttpServer): Server {
       handleJoinUser(sessionCode, participantName, socket.id);
     });
 
-    //leave session 
-    socket.on("leave-session", ({sessionCode}) => {
-      console.log("Socket Left the session.....:", socket.id,sessionCode);
-      handleLeaveSession(sessionCode,socket.id)
-       socket.leave(sessionCode)
+    //leave session
+    socket.on("leave-session", ({ sessionCode }) => {
+      console.log("Socket Left the session.....:", socket.id, sessionCode);
+      handleLeaveSession(sessionCode, socket.id);
+      socket.leave(sessionCode);
     });
 
     //disconnect
@@ -53,14 +59,20 @@ export default function initSocket(server: HttpServer): Server {
     });
   });
 
-   // Mediasoup namespace
+  // Mediasoup namespace
   const mediaNamespace = io.of("/mediasoup");
 
   mediaNamespace.on("connection", (socket) => {
-    console.log("Mediasoup socket connected:", socket.id);
+    const { sessionCode } = socket.handshake.auth;
 
-    socket.on("disconnect", () => {
-      console.log("Mediasoup socket disconnected:", socket.id);
+    if (!sessionCode) {
+      console.error("❌ mediasoup socket missing sessionCode");
+      socket.disconnect(true);
+      return;
+    }
+    console.log("Mediasoup socket connected:", socket.id, sessionCode);
+    socket.on("get-rtp-capabilities", () => {
+      handleGetRtpCapabilities(sessionCode);
     });
   });
 

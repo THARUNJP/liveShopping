@@ -1,4 +1,5 @@
 import { sessionsMap } from "../config/sessionStore";
+import { getRouterRtpCapabilities } from "../mediasoup";
 import { getIO } from "../socket/init.socket";
 import {
   SessionCallType,
@@ -6,7 +7,6 @@ import {
   SessionRole,
   SessionStatus,
 } from "../types/types";
-
 
 export const handleJoinUser = (
   sessionCode: string,
@@ -51,7 +51,7 @@ export const handleDisconnectedUser = (socketId: string) => {
       session.participants.delete(socketId);
 
       io.to(sessionCode).emit("participants-updated", {
-        participants: Array.from(session.participants.values())
+        participants: Array.from(session.participants.values()),
       });
 
       if (session.participants.size === 0) {
@@ -90,3 +90,11 @@ export const handleLeaveSession = (sessionCode: string, socketId: string) => {
   }
 };
 
+export const handleGetRtpCapabilities = (sessionCode:string) => {
+  try {
+    const router = getRouterRtpCapabilities(sessionCode)
+  } catch (err) {
+    console.log(err);
+    
+  }
+};
