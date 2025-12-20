@@ -1,5 +1,4 @@
 import { sessionsMap } from "../config/sessionStore";
-import { getRouterRtpCapabilities } from "../mediasoup";
 import { getIO } from "../socket/init.socket";
 import {
   SessionCallType,
@@ -90,11 +89,4 @@ export const handleLeaveSession = (sessionCode: string, socketId: string) => {
   }
 };
 
-export const handleGetRtpCapabilities = (sessionCode:string) => {
-  try {
-    const router = getRouterRtpCapabilities(sessionCode)
-  } catch (err) {
-    console.log(err);
-    
-  }
-};
+

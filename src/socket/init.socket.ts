@@ -2,11 +2,14 @@ import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
 import {
   handleDisconnectedUser,
-  handleGetRtpCapabilities,
   handleJoinUser,
   handleLeaveSession,
   handleSessionCreation,
 } from "../service/socket.service";
+import {
+  createRouterSession,
+  handleGetRtpCapabilities,
+} from "../service/media.service";
 
 let io: Server;
 
@@ -23,9 +26,10 @@ export default function initSocket(server: HttpServer): Server {
     console.log("Socket connected:", socket.id);
 
     // session creation
-    socket.on("create-session", ({ sessionCode, callType }) => {
+    socket.on("create-session", async ({ sessionCode, callType }) => {
       console.log("....session creation", sessionCode, "type::", callType);
       handleSessionCreation(sessionCode, callType);
+      await createRouterSession(sessionCode);
     });
 
     // join session
@@ -72,6 +76,7 @@ export default function initSocket(server: HttpServer): Server {
     }
     console.log("Mediasoup socket connected:", socket.id, sessionCode);
     socket.on("get-rtp-capabilities", () => {
+      if(!sessionCode) return
       handleGetRtpCapabilities(sessionCode);
     });
   });

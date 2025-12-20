@@ -1,4 +1,3 @@
-import { Worker } from "mediasoup/node/lib/types";
 import createMediasoupWorkers from "./worker";
 
 // Re-export router helpers
@@ -10,6 +9,7 @@ export {
   getRouterRtpCapabilities,
 } from "./router";
 
+export {getMediasoupWorker} from "./worker"
 // Re-export transport helpers
 export {
   createSendTransport,
@@ -46,6 +46,4 @@ export async function initMediasoup(): Promise<void> {
  * Get a mediasoup worker (round-robin)
  * Used when creating routers
  */
-export function getMediasoupWorker(): Worker {
-  return getMediasoupWorker();
-}
+
