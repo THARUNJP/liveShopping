@@ -56,7 +56,7 @@ export function closeRouter(sessionCode: string): void {
  * Get RTP capabilities for frontend
  * Needed before transport creation
  */
-export function getRouterRtpCapabilities(sessionCode: string) {  
+export function getRouterRtpCapabilities(sessionCode: string) {
   const router = routers.get(sessionCode);
   if (!router) {
     throw new Error("Router not found for session");

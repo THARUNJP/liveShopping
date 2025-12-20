@@ -76,7 +76,6 @@ export default function initSocket(server: HttpServer): Server {
     }
     console.log("Mediasoup socket connected:", socket.id, sessionCode);
     socket.on("get-rtp-capabilities", () => {
-      if(!sessionCode) return
       handleGetRtpCapabilities(sessionCode);
     });
   });
