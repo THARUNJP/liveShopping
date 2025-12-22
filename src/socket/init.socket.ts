@@ -10,6 +10,8 @@ import {
   createRouterSession,
   handleGetRtpCapabilities,
 } from "../service/media.service";
+import { getRouter } from "../mediasoup";
+import { createWebRtcTransport } from "../mediasoup/transport";
 
 let io: Server;
 
@@ -73,10 +75,10 @@ export default function initSocket(server: HttpServer): Server {
       socket.disconnect(true);
       return;
     }
-    
+
     console.log("Mediasoup socket connected:", socket.id, sessionCode);
     socket.on("get-rtp-capabilities", (callback) => {
-      if(typeof callback !== "function") return;
+      if (typeof callback !== "function") return;
       console.log("...rtp capabilities");
       const router = handleGetRtpCapabilities(sessionCode);
       if (!router) {
@@ -86,16 +88,29 @@ export default function initSocket(server: HttpServer): Server {
         });
       }
       callback({
-        status:true,
-        data:router,
-        message:"rtp capabilties sent"
-      })
+        status: true,
+        data: router,
+        message: "rtp capabilties sent",
+      });
     });
 
-
-
-
-
+    // need to change logic and handle it using callback which wraps it in try/catch
+    socket.on("create-transport", async ({ direction }, callback) => {
+      const router = getRouter(sessionCode);
+      if (!router) {
+        return callback({
+          status: false,
+          message: "No router found for the session",
+        });
+      }
+      const transport = await createWebRtcTransport(router);
+      callback({
+        id: transport.id,
+        iceParameters: transport.iceParameters,
+        iceCandidates: transport.iceCandidates,
+        dtlsParameters: transport.dtlsParameters,
+      });
+    });
   });
 
   return io;
