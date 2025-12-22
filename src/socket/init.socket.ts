@@ -68,12 +68,12 @@ export default function initSocket(server: HttpServer): Server {
 
   mediaNamespace.on("connection", (socket) => {
     const { sessionCode } = socket.handshake.auth;
-
     if (!sessionCode) {
-      console.error("❌ mediasoup socket missing sessionCode");
+      console.error("mediasoup socket missing sessionCode");
       socket.disconnect(true);
       return;
     }
+    
     console.log("Mediasoup socket connected:", socket.id, sessionCode);
     socket.on("get-rtp-capabilities", (callback) => {
       if(typeof callback !== "function") return;
@@ -91,6 +91,11 @@ export default function initSocket(server: HttpServer): Server {
         message:"rtp capabilties sent"
       })
     });
+
+
+
+
+
   });
 
   return io;
