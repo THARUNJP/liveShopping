@@ -8,6 +8,7 @@ import {
 } from "../service/socket.service";
 import {
   createRouterSession,
+  handleCreateTransport,
   handleGetRtpCapabilities,
 } from "../service/media.service";
 import { getRouter } from "../mediasoup";
@@ -103,8 +104,9 @@ export default function initSocket(server: HttpServer): Server {
           message: "No router found for the session",
         });
       }
-      const transport = await createWebRtcTransport(router);
-      callback({
+      const transport = await handleCreateTransport(router)
+      if(!transport) return callback({status:false,message: "something went wrong while creating transport",})
+        callback({
         id: transport.id,
         iceParameters: transport.iceParameters,
         iceCandidates: transport.iceCandidates,
