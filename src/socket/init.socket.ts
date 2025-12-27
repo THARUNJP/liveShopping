@@ -13,6 +13,7 @@ import {
 } from "../service/media.service";
 import {
   connectTransport,
+  createConsumer,
   createProducer,
   createRecvTransport,
   getRouter,
@@ -173,6 +174,28 @@ export default function initSocket(server: HttpServer): Server {
         });
       } catch (err: any) {
         console.error("create-recv-transport failed:", err);
+        callback({ status: false, message: err.message });
+      }
+    });
+
+    socket.on("consume", async ({ producerId, rtpCapabilities }, callback) => {
+      try {
+        const { sessionCode } = socket.data;
+        const consumer = await createConsumer(
+          socket.id,
+          sessionCode,
+          producerId,
+          rtpCapabilities
+        );
+        callback({
+          status: true,
+          id: consumer.id,
+          producerId,
+          kind: consumer.kind,
+          rtpParameters: consumer.rtpParameters,
+        });
+      } catch (err: any) {
+        console.error("consume failed:", err);
         callback({ status: false, message: err.message });
       }
     });
