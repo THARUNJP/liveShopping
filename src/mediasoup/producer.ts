@@ -9,12 +9,19 @@ export async function createProducer(
   kind: "audio" | "video",
   rtpParameters: RtpParameters
 ) {
+  // validate send transport exists
   const transport = getTransport(socketId, "send");
+  if (!transport) {
+    throw new Error("Send transport not found");
+  }
+
+  // Create producer
   const producer = await transport.produce({
     kind,
     rtpParameters,
   });
 
+  // Store producer per socket
   let socketProducers = producers.get(socketId);
   if (!socketProducers) {
     socketProducers = new Map();
@@ -22,6 +29,7 @@ export async function createProducer(
   }
   socketProducers.set(producer.id, producer);
 
+  // Cleanup on transport close
   producer.on("transportclose", () => {
     socketProducers?.delete(producer.id);
   });
@@ -29,6 +37,7 @@ export async function createProducer(
   producer.on("@close", () => {
     socketProducers?.delete(producer.id);
   });
+
   return {
     id: producer.id,
     kind: producer.kind,

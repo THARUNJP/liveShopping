@@ -11,7 +11,12 @@ import {
   handleCreateTransport,
   handleGetRtpCapabilities,
 } from "../service/media.service";
-import { getRouter } from "../mediasoup";
+import {
+  connectTransport,
+  createProducer,
+  getRouter,
+  getTransport,
+} from "../mediasoup";
 
 let io: Server;
 
@@ -74,46 +79,78 @@ export default function initSocket(server: HttpServer): Server {
       if (!sessionCode) {
         return callback({ status: false, message: "sessionCode required" });
       }
+      console.log(socket.id, "media joined success", sessionCode);
 
       socket.data.sessionCode = sessionCode;
       callback({ status: true });
     });
 
-    // socket.on("get-rtp-capabilities", (callback) => {
-    //   if (typeof callback !== "function") return;
-    //   console.log("...rtp capabilities");
-    //   const router = handleGetRtpCapabilities(sessionCode);
-    //   if (!router) {
-    //     return callback({
-    //       status: false,
-    //       message: "Router not found",
-    //     });
-    //   }
-    //   callback({
-    //     status: true,
-    //     data: router,
-    //     message: "rtp capabilties sent",
-    //   });
-    // });
+    socket.on("get-rtp-capabilities", (callback) => {
+      const { sessionCode } = socket.data;
+      if (typeof callback !== "function" || !sessionCode) return;
+      console.log("...rtp capabilities");
+      const router = handleGetRtpCapabilities(sessionCode);
+      if (!router) {
+        return callback({
+          status: false,
+          message: "Router not found",
+        });
+      }
+      callback({
+        status: true,
+        data: router,
+        message: "rtp capabilties sent",
+      });
+    });
 
-    // // need to change logic and handle it using callback which wraps it in try/catch
-    // socket.on("create-transport", async ({ direction }, callback) => {
-    //   const router = getRouter(sessionCode);
-    //   if (!router) {
-    //     return callback({
-    //       status: false,
-    //       message: "No router found for the session",
-    //     });
-    //   }
-    //   const transport = await handleCreateTransport(router)
-    //   if(!transport) return callback({status:false,message: "something went wrong while creating transport",})
-    //     callback({
-    //     id: transport.id,
-    //     iceParameters: transport.iceParameters,
-    //     iceCandidates: transport.iceCandidates,
-    //     dtlsParameters: transport.dtlsParameters,
-    //   });
-    // });
+    socket.on("create-send-transport", async (callback) => {
+      console.log("........comes here create-send-transport");
+
+      const { sessionCode } = socket.data;
+      const router = getRouter(sessionCode);
+      if (!router) {
+        return callback({
+          status: false,
+          message: "No router found for the session",
+        });
+      }
+      const transport = await handleCreateTransport(router);
+      if (!transport)
+        return callback({
+          status: false,
+          message: "something went wrong while creating transport",
+        });
+      callback({
+        status: true,
+        id: transport.id,
+        iceParameters: transport.iceParameters,
+        iceCandidates: transport.iceCandidates,
+        dtlsParameters: transport.dtlsParameters,
+      });
+    });
+
+    socket.on(
+      "connect-transport",
+      async ({ transportType, dtlsParameters }, callback) => {
+        try {
+          await connectTransport(socket.id, transportType, dtlsParameters);
+          callback({ status: true });
+        } catch (error: any) {
+          console.error("connect-transport failed", error);
+          callback({ status: false, message: error.message });
+        }
+      }
+    );
+
+    socket.on("produce", async ({ kind, rtpParameters }, callback) => {
+      try {
+        const producer = await createProducer(socket.id, kind, rtpParameters);
+        callback({ status: true, id: producer.id });
+      } catch (err: any) {
+        console.log("create producer failed:", err);
+        callback({ status: false, message: err.message });
+      }
+    });
   });
 
   return io;
